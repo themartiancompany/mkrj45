@@ -50,28 +50,7 @@ _INSTALL_DIR=\
 
 all:
 
-build-man:
-
-	mkdir \
-	  -p \
-	  "build"
-	cp \
-	  "variables.rst" \
-	  "build"
-	sed \
-	  "s/insert.version.here/$(_VERSION)/g" \
-	  -i \
-	  "build/variables.rst"; \
-	for _file in $(MAN_FILES); do \
-	  _program="$( \
-	    basename \
-	      "$${_file%%*.1.rst}")"; \
-	  rst2man \
-	    "$${_file}" \
-	    "build/$${_program}.1"; \
-	done
-	
-install: install-doc install-man
+install: install-doc install-scripts
 
 install-scripts:
 	$(_INSTALL_EXE) \
@@ -85,18 +64,4 @@ install-doc:
 	  -t \
 	  $(DOC_DIR)
 
-install-man:
-
-	if [[ ! -d "build" ]]; then \
-	  make \
-	    build-man; \
-	fi
-	cd \
-	  "build"; \
-	for _file in "./"*; do \
-	  $(_INSTALL_FILE) \
-	    "$${_file}" \
-	    "$(MAN_DIR)/man1/$${_file}"; \
-	done
-
-.PHONY: install install-doc install-man
+.PHONY: install install-doc install-scripts

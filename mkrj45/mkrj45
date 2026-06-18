@@ -196,6 +196,7 @@ Usage:
      -h                       This message.
      -c                       Enable color output
      -v                       Enable verbose output
+
 ENDUSAGETEXT
   _printf \
     '%s\n' \
