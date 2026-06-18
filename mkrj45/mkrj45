@@ -26,12 +26,145 @@
 #    along with this program.
 #    If not, see <https://www.gnu.org/licenses/>.
 
+_bin="$(
+  dirname \
+    "$(command \
+        -v \
+        "env")")"
+_lib="$(
+  realpath \
+    "${_bin}/../lib")"
+_crash_bash="${_lib}/libcrash-bash/crash-bash"
+_libevm="${_lib}/libevm/libevm"
+_sourced \
+  "${_crash_bash}" 2>/dev/null || \
+  source \
+    "${_crash_bash}"
+_sourced \
+  "${_libevm}"
+
 _global_variables() {
-  true
+  loopback_device=""
+  target_address=""
 }
 
 _mkrj45() {
-  
+  local \
+    _loopback_device="${1}" \
+    _target_address="${2}" \
+    _devices_loopback=() \
+    _ifconfig_args=() \
+    _cmd=() \
+    _msg=()
+  _devices_loopback+=( $(
+    ip \
+      link \
+        show |
+      grep \
+        -i \
+        "<loopback,UP,LOWER_UP>" |
+        awk \
+          '{print $2}')
+  )
+  if [[ " ${_devices_loopback[*]} " == *" ${_loopback_device} "* ]]; then
+    _msg=(
+      "Device '${_loopback_device}'"
+      "already exists."
+    )
+    _msg_error \
+      "${_msg[*]}"
+  else
+    _msg=(
+      "Creating loopback network"
+      "device '${_loop_device}'."
+    )
+    _msg_info \
+      "${_msg[*]}"
+    _ifconfig_args+=(
+      "${_loop_device}"
+      "${_target_address}"
+      "netmask"
+      "255.0.0.0"
+      "up"
+    )
+    _cmd=(
+      ifconfig
+        "${_ifconfig_args[@]}"
+    )
+    su \
+      -c \
+        "${_cmd[*]}"
+  fi
 }
+
+_set_overrides() {
+  _set_override \
+    "device" \
+    "name" \
+    "lo"
+  _set_override \
+    "target" \
+    "address" \
+    "127.0.0.2"
+}
+
+_cmdline_parse() {
+  local \
+    _args=() \
+    _getopts_opts
+  _args+=(
+    "$@"
+  )
+  getopts_opts="$(
+    printf \
+      "%s" \
+      "A:" \
+      "cvh")"
+  while \
+    getopts \
+      "${getopts_opts}" \
+      arg; do
+    _wallet_getopts_case
+    _libevm_app_getopts_case
+    case \
+      "${arg}" in
+      A)
+        override_target_address="${OPTARG}" ;;
+      c)
+        override_color="y" ;;
+      v)
+        override_quiet="n" ;;
+      h)
+        _set_overrides
+           _usage \
+             0 ;;
+      *)
+        if [[ " ${getopts_opts} " != *"${arg}"* ]]; then
+          _msg=(
+            "Invalid argument '${arg}'."
+          )
+          _msg_error \
+            "${_msg[*]}" \
+            0
+          _set_overrides
+          _usage \
+            1
+        fi ;;
+    esac
+  done
+  shift \
+    $((
+      OPTIND - 1 ))
+}
+
+_global_variables
+_cmdline_parse
+_set_overrides
+app_opts=(
+  "${loopback_device}"
+  "${target_address}"
+)
+_mkrj45 \
+  "${app_opts[@]}"
 
 # vim:set sw=2 sts=-1 et:
