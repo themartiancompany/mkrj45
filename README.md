@@ -31,6 +31,15 @@ Program written to fix the
   https://share.google/aimode/XGpyxlkEiwVeUAos1)
 Google query.
 
+<div
+   align="center">
+  <img
+     src="https://raw.githubusercontent.com/themartiancompany/mkrj45/<commit>/docs/how-to-make-gigabit-loopback-adapter.png"
+     width="500"
+     align="center"
+  />
+</div>
+
 ## Installation
 
 The tool in this source repo
